@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fantasy League Hub</title>
+<style>
+:root{box-sizing:border-box;color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#2b2b2b;--card:#d9d9d9;--ink:#1d1d1d;--mut:#555;--line:#b5b5b5;--acc:#c93a14;--acc2:#f08a2c;--good:#1b7a33;--bad:#b3261e}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:#2b2b2b repeating-linear-gradient(45deg,#2f2f2f 0 2px,#292929 2px 4px);color:var(--ink);font:13px/1.45 Verdana,Tahoma,Arial,sans-serif}
+#wrap{max-width:1000px;margin:0 auto;background:#1c1c1c;box-shadow:0 0 0 1px #000,0 0 0 2px #555}
+#top{display:flex;justify-content:flex-end;gap:16px;padding:5px 14px;background:linear-gradient(#4a4a4a,#222);font:bold 11px Arial;color:#ddd;text-transform:uppercase}
+#top span{cursor:pointer}#top span:hover{color:#f08a2c}
+#hdr{display:flex;align-items:center;gap:14px;padding:12px 16px;background:radial-gradient(ellipse at 30% 50%,#1b6aa0 0,#0b2a40 55%,#111 100%);border-bottom:3px solid #000}
+.logo{flex:none;width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#cfd8dd,#5c6b75 55%,#222);border:3px solid #111;display:flex;align-items:center;justify-content:center;font:900 24px Arial;color:#0b2a40;box-shadow:0 0 14px #3fb2ff99}
+.ttl{font:italic 900 32px "Trebuchet MS",Arial,sans-serif;letter-spacing:-1px;color:#8fe0ff;text-shadow:0 0 12px #1ea6ff,0 2px 0 #06304a;text-transform:lowercase}
+.badge{margin-left:auto;font:bold 11px Arial;color:#fff;background:linear-gradient(#e0561f,#a02a0a);padding:6px 10px;border:1px solid #000;border-radius:3px;text-transform:uppercase;text-align:center}
+#cols{display:grid;grid-template-columns:150px minmax(0,1fr) 190px}
+#side{background:linear-gradient(90deg,#0f4a70,#0a3a58)}
+.sh{background:linear-gradient(#555,#2a2a2a);color:#fff;font:bold 12px Arial;padding:5px 8px;border-top:1px solid #777}
+.sh::before{content:"";display:inline-block;width:8px;height:8px;background:#c93a14;border:1px solid #fff;margin-right:8px}
+nav{display:block}
+nav button{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid #0a2f48;background:linear-gradient(#1e6a98,#125078);color:#e8f4ff;padding:7px 10px;font:bold 12px Arial;cursor:pointer}
+nav button:hover{background:linear-gradient(#2a82b8,#1a6090)}
+nav button.on{background:linear-gradient(#f08a2c,#c93a14);color:#fff}
+.sl{padding:6px 10px;color:#bfe3ff;font:11px Arial;border-bottom:1px solid #0a2f48}
+#center{background:#b8b8b8;padding:10px;min-width:0}
+#right{background:#2d2d2d;padding-bottom:10px}
+.rh{background:linear-gradient(#1f7ab5,#0d4f7c);color:#fff;font:bold 11px Arial;text-transform:uppercase;padding:4px 8px;border-top:1px solid #5bb6ec}
+.spot{margin:8px;padding:30px 10px 14px;text-align:center;color:#fff;background:linear-gradient(#1a1030,#8a2d3b 55%,#f08a2c);border:1px solid #000;font:bold 13px Arial}
+.spot span{font-weight:normal;font-size:11px;color:#ffd9a8}
+#right ol{margin:8px 8px 0 28px;padding:0;color:#ddd;font:12px Arial}
+#right li{padding:3px 0;border-bottom:1px dotted #555}
+footer{background:linear-gradient(#222,#000);color:#aaa;font:11px Arial;padding:8px 14px;text-align:right;border-top:1px solid #444}
+.card{background:var(--card);border:1px solid #8c8c8c;padding:12px;margin-bottom:12px}
+.card h2{margin:-12px -12px 10px;padding:6px 10px;font:bold 12px Arial;text-transform:uppercase;letter-spacing:.3px;color:#fff;background:linear-gradient(#444,#1e1e1e);border-bottom:1px solid #000}
+.card h2::before{content:"»» ";color:#f08a2c}
+.card h2 .mut{color:#bbb}
+.wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+th,td{padding:6px 9px;text-align:right;border-bottom:1px solid #f2f2f2}
+th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
+th{background:linear-gradient(#1e6a98,#124565);color:#fff;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid #0a2f48}
+tr:nth-child(even) td{background:#cdcdcd}
+tr.cut td{border-bottom:2px dashed var(--acc)}
+.pos{color:var(--good);font-weight:600}.neg{color:var(--bad);font-weight:600}.mut{color:var(--mut);font-size:11px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.aw{background:#e6e6e6;border:1px solid #9a9a9a;border-left:4px solid var(--acc);padding:10px}
+.aw .t{font:bold 11px Arial;text-transform:uppercase;letter-spacing:.4px;color:var(--mut)}
+.aw .n{font-size:16px;font-weight:700;margin:3px 0 2px}
+.aw .v{color:var(--acc);font-weight:700}
+.bar{height:8px;background:#aaa;border-radius:9px;overflow:hidden;min-width:90px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#9c7a14,var(--acc2))}
+.crown{color:var(--acc2)}
+.sec{display:none}.sec.on{display:block}
+.dots span{display:inline-block;width:9px;height:9px;margin-right:2px;border:1px solid #777}
+.dots .W{background:var(--acc2)}.dots .L{background:#888}
+.pill{border:1px solid #888;background:#e6e6e6;color:#1d1d1d;padding:5px 12px;border-radius:99px;font:12px Arial;cursor:pointer;margin:0 6px 6px 0}
+.pill.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+select{background:#e6e6e6;color:#1d1d1d;border:1px solid #888;padding:6px 8px;font:inherit;margin-bottom:10px}
+svg text{fill:var(--ink)}
+@media (max-width:860px){#cols{grid-template-columns:1fr}#side .sh,#side .sl{display:none}nav{display:flex;overflow-x:auto}nav button{width:auto;white-space:nowrap;border-right:1px solid #0a2f48}.ttl{font-size:24px}.badge{display:none}}
+</style>
+</head>
+<body>
+<div id="wrap">
+<div id="top"><span onclick="show('home')">Home</span><span onclick="show('standings')">Standings</span><span onclick="show('trades')">Trades</span><span onclick="show('history')">History</span><span onclick="show('power')">Hottest Team</span></div>
+<div id="hdr"><div class="logo">FL</div><div class="ttl" id="ttl">fantasy league</div><div class="badge" id="badge">Loading</div></div>
+<div id="cols">
+<aside id="side"><div class="sh">Main</div><nav id="nav"></nav><div class="sh">My League</div><div id="info"></div></aside>
+<main id="center">
+<section class="sec on" id="home"><div class="card"><h2>Loading</h2>Loading league data…</div></section>
+<section class="sec" id="standings"></section>
+<section class="sec" id="power"></section>
+<section class="sec" id="matchups"></section>
+<section class="sec" id="weekly"></section>
+<section class="sec" id="rivals"></section>
+<section class="sec" id="trades"></section>
+<section class="sec" id="awards"></section>
+<section class="sec" id="history"></section>
+</main>
+<aside id="right"></aside>
+</div>
+<footer id="foot">Data from Sleeper</footer>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const f=(n,d=1)=>Number(n).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d});
+const sg=n=>(n>0?'+':'')+f(n);
+const cls=n=>n>0?'pos':n<0?'neg':'';
+const mean=a=>a.reduce((x,y)=>x+y,0)/(a.length||1);
+const sd=a=>{const m=mean(a);return Math.sqrt(mean(a.map(x=>(x-m)**2)))||1};
+const K=2.37;
+const tbl=(h,rows,cut)=>`<div class="wrap"><table><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr>${rows.map((r,i)=>`<tr${cut===i?' class="cut"':''}>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</table></div>`;
+const card=(t,b,x)=>`<div class="card"${x?` style="${x}"`:''}><h2>${t}</h2>${b}</div>`;
+const dots=s=>`<span class="dots">${(s||'').split('').map(c=>`<span class="${c}"></span>`).join('')}</span>`;
+const grid=a=>`<div class="grid">${a.map(x=>`<div class="aw"><div class="t">${x[0]}</div><div class="n">${x[1]}</div><div class="v">${x[2]}</div></div>`).join('')}</div>`;
+const lab=n=>n===1?'🏆 Champion':n===2?'Runner-up':n+(n===3?'rd':'th')+' place';
+const tdate=ts=>new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'});
+const mid=a=>{const v=a.slice().sort((x,y)=>y-x);return v.length?(v.length%2?v[(v.length-1)/2]:(v[v.length/2-1]+v[v.length/2])/2):0};
+const tabs=[['home','This Week'],['standings','Standings'],['power','Power & Luck'],['matchups','Matchups'],['weekly','Weekly'],['rivals','Rivalries'],['trades','Trades'],['awards','Awards'],['history','History']];
+$('nav').innerHTML=tabs.map(t=>`<button data-t="${t[0]}">${t[1]}</button>`).join('');
+function show(id){document.querySelectorAll('.sec').forEach(s=>s.classList.toggle('on',s.id===id));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===id));}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>show(b.dataset.t));
+show('home');
+
+(async function main(){
+let D;
+try{const r=await fetch('data/league.json?'+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);D=await r.json();}
+catch(e){$('home').innerHTML=card('No data yet','The league data file has not been created yet. In your GitHub repository, open the <b>Actions</b> tab, choose <b>Update and deploy</b>, and press <b>Run workflow</b>. Come back in a minute.<br><span class="mut">('+esc(e.message)+')</span>');$('badge').textContent='No data';return;}
+try{build(D);}catch(e){console.error(e);$('home').innerHTML=card('Something went wrong','The page could not read the data. '+esc(e.message));}
+})();
+
+function build(D){
+const S=D.seasons.slice().sort((a,b)=>Number(a.season)-Number(b.season)),cur=S[S.length-1],ST=D.state||{};
+const NAMES=D.names||{};
+const inSeason=(ST.season_type==='regular'||ST.season_type==='post')&&String(ST.season)===String(cur.season);
+const nowW=inSeason?Number(ST.week):99;
+const ps=s=>s.settings.playoff_week_start||15,hasMed=s=>!!s.settings.median,regW=s=>ps(s)-1;
+const wkTot=w=>w.games.reduce((n,g)=>n+g[1]+g[3],0);
+const isFinal=(s,w)=>s!==cur||!inSeason||w<nowW;
+
+// teams
+const TM={};
+S.forEach(s=>{s.map={};s.teams.forEach(t=>{const k=t.owner_id||`${s.season}-${t.roster_id}`;s.map[t.roster_id]=k;const o=TM[k]||(TM[k]={key:k});o.name=t.team_name||t.display_name||('Team '+t.roster_id);o.user=t.display_name||'';});});
+const nm=k=>esc(TM[k]?TM[k].name:'Unknown');
+const TEAMS=cur.teams.slice().sort((a,b)=>a.roster_id-b.roster_id).map(t=>TM[cur.map[t.roster_id]]);
+const used=new Set();
+TEAMS.forEach(t=>{const c=(t.name.split(/\s+/).map(w=>w[0]||'').join('').slice(0,3).toUpperCase())||'T';let u=c,i=2;while(used.has(u))u=c.slice(0,2)+(i++);used.add(u);t.code=u;});
+const CODE=k=>esc(TM[k]&&TM[k].code?TM[k].code:'?');
+const leagueName=cur.name||'Fantasy League';
+document.title=leagueName;
+$('ttl').textContent=leagueName.toLowerCase();
+$('hdr').querySelector('.logo').textContent=leagueName.split(/\s+/).map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
+
+// per-season stats
+const seasonStats=s=>{const m=hasMed(s),tot=regW(s)*(m?2:1);return s.standings.map(r=>{const key=s.map[r.roster_id],n=r.w+r.l+(r.t||0),wk=m?n/2:n;
+const py=(r.pf>0&&r.pa>0)?Math.pow(r.pf,K)/(Math.pow(r.pf,K)+Math.pow(r.pa,K)):.5;
+return{key,w:r.w,l:r.l,pf:r.pf,pa:r.pa,pp:r.pp,rec:r.record||'',n,wk,ppg:wk?r.pf/wk:0,pag:wk?r.pa/wk:0,eff:r.pp?r.pf/r.pp*100:0,diff:r.pf-r.pa,pyth:py,xw:py*n,luck:r.w-py*n,wp:n?r.w/n:0,proj:(n?r.w/n:0)*tot,stk:r.streak||''}})};
+const SS={};S.forEach(s=>SS[s.season]=seasonStats(s));
+const CS=SS[cur.season],CSM={};CS.forEach(r=>CSM[r.key]=r);
+const std=CS.slice().sort((a,b)=>b.w-a.w||b.pf-a.pf);
+const placements=s=>{const o={};(s.bracket||[]).forEach(m=>{if(m.p&&m.w!=null&&m.l!=null){o[s.map[m.w]]=lab(m.p);o[s.map[m.l]]=lab(m.p+1);}});return o};
+const champ=s=>{const m=(s.bracket||[]).find(x=>x.p===1&&x.w!=null);return m?s.map[m.w]:null};
+const runner=s=>{const m=(s.bracket||[]).find(x=>x.p===1&&x.l!=null);return m?s.map[m.l]:null};
+const done=S.filter(s=>s!==cur||!inSeason);
+
+// games
+const mk=(y,w,a,sa,b,sb,po)=>({y,w,a,sa,b,sb,win:sa>=sb?a:b,lose:sa>=sb?b:a,ws:Math.max(sa,sb),ls:Math.min(sa,sb),m:Math.abs(sa-sb),po});
+const weekGames=(s,w)=>{const wk=s.weeks.find(x=>x.week===w);return wk?wk.games.map(g=>({a:s.map[g[0]],sa:g[1],b:s.map[g[2]],sb:g[3]})).filter(g=>g.a&&g.b):[]};
+const GA=[];
+S.forEach(s=>s.weeks.forEach(wk=>{if(wkTot(wk)<=0||!isFinal(s,wk.week))return;weekGames(s,wk.week).forEach(g=>GA.push(mk(s.season,wk.week,g.a,g.sa,g.b,g.sb,wk.week>=ps(s))))}));
+const gl=g=>`${g.y} ${g.po?'Playoffs':'Wk '+g.w}`;
+
+// weekly aggregates
+function weekly(s){
+const wks=s.weeks.filter(w=>w.week<ps(s)&&wkTot(w)>0&&isFinal(s,w.week)).map(w=>{const g=weekGames(s,w.week),sc={};g.forEach(x=>{sc[x.a]=x.sa;sc[x.b]=x.sb});const v=Object.values(sc);return{w:w.week,g,sc,md:mid(v),mx:Math.max(...v),mn:Math.min(...v)}});
+const T={},G=[];
+wks.forEach(wk=>{wk.g.forEach(g=>G.push(mk(s.season,wk.w,g.a,g.sa,g.b,g.sb,false)));
+Object.keys(wk.sc).forEach(k=>{const t=T[k]||(T[k]={k,sc:[],hw:0,hl:0,mw:0,ml:0,ap:0,lw:0,ul:0,cr:0});const x=wk.sc[k],g=wk.g.find(q=>q.a===k||q.b===k),os=g.a===k?g.sb:g.sa;
+t.sc.push(x);const won=x>os;won?t.hw++:t.hl++;const ab=x>wk.md;ab?t.mw++:t.ml++;if(won&&!ab)t.lw++;if(!won&&ab)t.ul++;
+t.ap+=Object.keys(wk.sc).filter(o=>o!==k&&wk.sc[o]<x).length;if(x===wk.mx)t.cr++;});});
+Object.values(T).forEach(t=>{t.sd=sd(t.sc);t.avg=mean(t.sc);t.hi=Math.max(...t.sc);t.lo=Math.min(...t.sc)});
+return{wks,T,G};}
+const WCUR=weekly(cur);
+
+// streaks across all seasons
+const runs=(s,c)=>Math.max(0,...s.split(c==='W'?'L':'W').map(x=>x.length));
+const curRun=s=>{if(!s)return'–';const c=s.slice(-1);let n=0;for(let i=s.length-1;i>=0&&s[i]===c;i--)n++;return c+n};
+const REC={};TEAMS.forEach(t=>{REC[t.key]=S.map(s=>{const r=(SS[s.season]||[]).find(x=>x.key===t.key);return r?r.rec:''}).join('')});
+const REC_CUR={};TEAMS.forEach(t=>REC_CUR[t.key]=(CSM[t.key]||{}).rec||'');
+
+// power
+const zs=(a,k)=>{const m=mean(a.map(x=>x[k])),d=sd(a.map(x=>x[k]));a.forEach(x=>x['z'+k]=(x[k]-m)/d)};
+['ppg','wp','eff','pyth'].forEach(k=>zs(CS,k));
+CS.forEach(t=>t.pow=t.zppg*.4+t.zwp*.25+t.zeff*.15+t.zpyth*.2);
+const pw=CS.slice().sort((a,b)=>b.pow-a.pow);
+const lgPA=mean(CS.map(t=>t.pag)),lgPF=mean(CS.map(t=>t.ppg));
+const cutN=(cur.settings.playoff_teams||6)-1;
+const lastFinal=Math.max(0,...cur.weeks.filter(w=>wkTot(w)>0&&isFinal(cur,w.week)&&w.week<ps(cur)).map(w=>w.week));
+
+// header / sidebar / right
+$('badge').innerHTML=inSeason?`${esc(cur.season)} Season<br>Week ${nowW}`:`${esc(cur.season)} Season`;
+$('info').innerHTML=[`${TEAMS.length} teams`,`${cur.settings.playoff_teams||6} make playoffs`,hasMed(cur)?'Median game weekly':'No median game','Updated '+(D.generated?tdate(D.generated):'')].map(x=>`<div class="sl">${esc(x)}</div>`).join('');
+$('foot').textContent=`${leagueName} · Data from Sleeper · ${S.map(s=>s.season).join(', ')}`;
+const lastChamp=[...done].reverse().find(s=>champ(s));
+const titles=k=>done.filter(s=>champ(s)===k).map(s=>s.season);
+$('right').innerHTML=`<div class="rh">League Spotlight</div><div class="spot">${lastChamp?`👑 Reigning Champs<br>${nm(champ(lastChamp))}<br><span>${titles(champ(lastChamp)).join(' · ')}</span>`:'Season in progress'}</div><div class="rh">Power Rankings</div><ol>${pw.slice(0,5).map(t=>`<li>${nm(t.key)}</li>`).join('')}</ol><div class="rh">Playoff Picture</div><ol>${std.slice(0,cutN+1).map(t=>`<li>${nm(t.key)} <span style="color:#999">${t.w}-${t.l}</span></li>`).join('')}</ol>`;
+
+// ---------- HOME ----------
+const scoredWeeks=cur.weeks.filter(w=>wkTot(w)>0&&(!inSeason||w.week<=nowW)).map(w=>w.week).sort((a,b)=>a-b);
+const liveWeek=inSeason&&scoredWeeks.includes(nowW)?nowW:null;
+const nextWk=inSeason?cur.weeks.find(w=>wkTot(w)===0&&w.games.length&&w.week>Math.max(0,...scoredWeeks)):null;
+window.renderHome=function(n){
+const games=weekGames(cur,n),live=n===liveWeek,po=n>=ps(cur),m=hasMed(cur)&&!po;
+const sc={};games.forEach(g=>{sc[g.a]=g.sa;sc[g.b]=g.sb});
+const medv=mid(Object.values(sc));
+const rows=Object.keys(sc).map(k=>{const g=games.find(x=>x.a===k||x.b===k),o=g.a===k?g.b:g.a,os=g.a===k?g.sb:g.sa,s=sc[k],won=s>os,ab=m&&s>medv;return{k,s,o,os,won,tie:s===os,ab,tot:(won?1:0)+(ab?1:0)}}).sort((a,b)=>b.s-a.s);
+const tog=scoredWeeks.slice().reverse().map(k=>`<button class="pill${k===n?' on':''}" onclick="renderHome(${k})">Week ${k}${k===liveWeek?' · live':''}</button>`).join('');
+if(!rows.length){$('home').innerHTML=card('This week','No games have been played yet.');return}
+const hmx=Math.max(...rows.map(r=>r.s),1),R=k=>rows.find(r=>r.k===k),idle=r=>live&&r.s===0&&r.os===0;
+const mg=g=>Math.abs(g.sa-g.sb),cl=games.reduce((a,b)=>mg(b)<mg(a)?b:a),bl=games.reduce((a,b)=>mg(b)>mg(a)?b:a),lead=g=>g.sa>=g.sb?g.a:g.b;
+const mkr=r=>m?(r.ab?'<span class="pos">▲</span>':'<span class="neg">▼</span>'):'';
+const chip=r=>idle(r)?'<span class="mut">–</span>':`<span style="padding:2px 9px;border-radius:99px;font-size:12px;font-weight:700;background:${r.tot===2?'var(--acc)':r.tot===1?'var(--line)':'transparent'};color:${r.tot===2?'#fff':r.tot===1?'var(--ink)':'var(--bad)'};border:1px solid ${r.tot===0?'var(--bad)':'transparent'}">${r.tot}-${2-r.tot}</span>`;
+const gcard=g=>{const ln=(k,s,w)=>`<div style="display:flex;justify-content:space-between;gap:10px;${w?'color:var(--acc);font-weight:700':'color:var(--mut)'}"><span>${nm(k)} ${mkr(R(k))}</span><span>${f(s,2)}</span></div>`;
+const st=g.sa===g.sb?(live?'Not started or tied':'Tied'):(live?'Leading by ':'Won by ')+f(mg(g));
+return`<div class="aw"><div class="t">${st}</div><div style="margin-top:6px">${ln(g.a,g.sa,g.sa>g.sb)}${ln(g.b,g.sb,g.sb>g.sa)}</div></div>`};
+const nl=a=>a.length?a.map(r=>nm(r.k)).join(', '):'Nobody';
+const hs=[['🔥 Top score',nm(rows[0].k),f(rows[0].s,2)+' pts'],
+live?['⏳ Yet to score',nl(rows.filter(r=>r.s===0)),"Haven't scored a point yet"]:['🧯 Lowest score',nm(rows[rows.length-1].k),f(rows[rows.length-1].s,2)+' pts']];
+if(m)hs.push(['⚖️ Median line',f(medv,2)+' pts',live?'Provisional until more games finish':'Beat it to earn the extra win']);
+hs.push([live?'🔨 Biggest lead':'🔨 Biggest blowout',nm(lead(bl)),(live?'Ahead by ':'Won by ')+f(mg(bl))],
+[live?'😬 Closest right now':'😬 Closest game',cl.sa===cl.sb?`${nm(cl.a)} vs ${nm(cl.b)}`:nm(lead(cl)),cl.sa===cl.sb?'Level':(live?'Ahead by ':'Won by ')+f(mg(cl))]);
+if(m){hs.push([live?'✅ Winning both':'✅ Won both games',nl(rows.filter(r=>r.tot===2&&!idle(r))),'Head-to-head and median']);
+if(!live)hs.push(['❌ Lost both games',nl(rows.filter(r=>r.tot===0)),'Head-to-head and median'],['🍀 Lucky wins',nl(rows.filter(r=>r.won&&!r.ab)),'Won head-to-head but scored below the median'],['😭 Unlucky losses',nl(rows.filter(r=>!r.won&&r.ab)),'Lost head-to-head despite an above-median score']);}
+const h2h=r=>(r.tie?'<span class="mut">Tied</span>':r.won?`<span class="pos">${live?'Leading':'W'}</span>`:`<span class="neg">${live?'Trailing':'L'}</span>`)+` vs ${nm(r.o)} <span class="mut">(${f(r.os,2)})</span>`;
+const md=r=>r.ab?`<span class="pos">${live?'Above':'W'}</span>`:`<span class="neg">${live?'Below':'L'}</span>`;
+const bar=r=>`<div style="position:relative;height:8px;background:#aaa;border-radius:9px;min-width:110px"><i style="display:block;height:100%;width:${r.s/hmx*100}%;background:linear-gradient(90deg,#9c7a14,var(--acc2));border-radius:9px"></i>${m?`<b style="position:absolute;top:-4px;bottom:-4px;left:${medv/hmx*100}%;width:2px;background:var(--ink)"></b>`:''}</div>`;
+const table=m?tbl(['#','Team','Score','','vs. Median','Head-to-Head','Median','Week'],rows.map((r,i)=>[i+1,`<b>${nm(r.k)}</b>`,f(r.s,2),bar(r),`<span class="${cls(r.s-medv)}">${sg(r.s-medv)}</span>`,h2h(r),md(r),chip(r)]))
+:tbl(['#','Team','Score','','Result'],rows.map((r,i)=>[i+1,`<b>${nm(r.k)}</b>`,f(r.s,2),bar(r),h2h(r)]));
+const nx=nextWk&&(n===liveWeek||n===scoredWeeks[scoredWeeks.length-1])?card(`Next up · Week ${nextWk.week}`,`<div class="grid">${weekGames(cur,nextWk.week).map(g=>`<div class="aw"><div style="display:flex;justify-content:space-between;gap:10px"><span>${nm(g.a)}</span><span class="mut">${CSM[g.a]?CSM[g.a].w+'-'+CSM[g.a].l:''}</span></div><div style="display:flex;justify-content:space-between;gap:10px;margin-top:4px"><span>${nm(g.b)}</span><span class="mut">${CSM[g.b]?CSM[g.b].w+'-'+CSM[g.b].l:''}</span></div></div>`).join('')}</div><div class="mut" style="margin-top:8px">Scores appear once the games start.</div>`):'';
+$('home').innerHTML=`<div>${tog}</div>`+card(`Week ${n} · ${esc(cur.season)}${live?' · in progress':po?' · playoffs':''}`,`<div class="mut">${live?'Games are still being played, so scores'+(m?' and the median line':'')+' will change. ':''}${m?'Every team plays two games a week: its head-to-head matchup and the league median. ▲ above the median, ▼ below.':''}</div>`,'border-left:3px solid var(--acc)')
++grid(hs)+`<div style="height:12px"></div>`+card('Matchups',`<div class="grid">${games.map(gcard).join('')}</div>`)
++card(m?'Scores vs. the league median':'Results',table+(m?`<div class="mut" style="margin-top:8px">The vertical line marks the league median (${f(medv,2)}). Week column = results out of 2${live?', as things stand':''}.</div>`:''))
++nx+card(`Standings after Week ${lastFinal}`,tbl(['#','Team','W-L','PF','Form'],std.map((t,i)=>[i+1,`<b>${nm(t.key)}</b>`,`${t.w}-${t.l}`,f(t.pf),dots(REC_CUR[t.key])]),cutN));
+};
+const startWeek=liveWeek||scoredWeeks[scoredWeeks.length-1];
+if(startWeek)renderHome(startWeek);else $('home').innerHTML=card('This week','The season has not started yet. Check back once Week 1 is played.');
+
+// ---------- STANDINGS ----------
+function bracketCard(s,title){
+const B=(s.bracket||[]).slice();if(!B.length)return'';
+const side=(t,fr)=>t!=null?`<b>${nm(s.map[t])}</b>`:fr?`<span class="mut">${fr.w!=null?'Winner':'Loser'} of match ${fr.w!=null?fr.w:fr.l}</span>`:'<span class="mut">TBD</span>';
+const ttl=m=>m.p===1?'Final':m.p===3?'3rd place game':m.p?m.p+'th place game':'Round '+m.r;
+B.sort((a,b)=>a.r-b.r||a.m-b.m);
+const decided=B.some(m=>m.w!=null);
+return card(title||(decided?'Playoff bracket':'Projected playoff bracket'),`<div class="mut" style="margin-bottom:10px">${decided?'Results so far.':'If the season ended today. Seeds are set by the league standings.'} Playoffs start Week ${ps(s)}.</div><div class="grid">${B.map(m=>`<div class="aw"><div class="t">${ttl(m)} · match ${m.m}</div><div style="margin-top:6px">${m.w!=null&&m.w===m.t1?'✓ ':''}${side(m.t1,m.t1_from)}</div><div style="margin-top:4px">${m.w!=null&&m.w===m.t2?'✓ ':''}${side(m.t2,m.t2_from)}</div></div>`).join('')}</div>`);}
+const bubble=std.slice(cutN+1,cutN+3);
+$('standings').innerHTML=card('Standings',tbl(['#','Team','W-L','PF','PA','Diff','PF/Gm','Proj. W','Form'],std.map((t,i)=>[i+1,`<b>${nm(t.key)}</b><div class="mut">${esc(TM[t.key].user)}</div>`,`${t.w}-${t.l}`,f(t.pf),f(t.pa),`<span class="${cls(t.diff)}">${sg(t.diff)}</span>`,f(t.ppg),f(t.proj,0)+'/'+(regW(cur)*(hasMed(cur)?2:1)),dots(REC_CUR[t.key])]),cutN)
++`<div class="mut" style="margin-top:8px">${hasMed(cur)?'Each week counts two results: your head-to-head game and a game against the league median. ':''}Proj. W is the current pace over the full regular season. Dashed line = playoff cut.</div>`)
++bracketCard(cur)+(bubble.length&&inSeason?card('On the bubble',bubble.map(t=>`<div>${nm(t.key)} <span class="mut">${t.w}-${t.l} · ${std[cutN].w-t.w} back of the last playoff spot</span></div>`).join('')):'');
+
+// ---------- POWER & LUCK ----------
+$('power').innerHTML=card('Power rankings','<div class="mut" style="margin-bottom:8px">Blend of scoring (40%), win % (25%), expected wins from scoring (20%) and lineup efficiency (15%).</div>'+tbl(['#','Team','Power','PF/Gm','Win %','Eff.','vs. Standing'],pw.map((t,i)=>{const d=std.findIndex(x=>x.key===t.key)-i;return[i+1,`<b>${nm(t.key)}</b>`,`<b style="color:var(--acc)">${f(t.pow,2)}</b>`,f(t.ppg),f(t.wp*100,0)+'%',f(t.eff)+'%',`<span class="${cls(d)}">${d>0?'▲'+d:d<0?'▼'+(-d):'–'}</span>`]}))) 
++card('Luck index',`<div class="mut" style="margin-bottom:8px">Actual wins minus expected wins from points scored and allowed (Pythagorean, exponent ${K}).</div>`+tbl(['','Team','Actual W','Expected W','Luck'],CS.slice().sort((a,b)=>b.luck-a.luck).map((t,i)=>[i+1,nm(t.key),t.w,f(t.xw),`<b class="${cls(t.luck)}">${sg(t.luck)}</b>`])))
++card('Lineup efficiency','<div class="mut" style="margin-bottom:8px">Points scored as a share of your best possible lineup each week.</div>'+tbl(['','Team','Efficiency','','Max Pts','Left on Bench'],CS.slice().sort((a,b)=>b.eff-a.eff).map((t,i)=>[i+1,nm(t.key),`<b>${f(t.eff)}%</b>`,`<div class="bar"><i style="width:${t.eff}%"></i></div>`,f(t.pp),`<span class="neg">${f(t.pp-t.pf)}</span>`])));
+
+// ---------- MATCHUPS ----------
+const xs=CS.map(t=>t.ppg),ys=CS.map(t=>t.pag),x0=Math.min(...xs)-5,x1=Math.max(...xs)+5,y0=Math.min(...ys)-5,y1=Math.max(...ys)+5;
+const px=v=>50+(v-x0)/((x1-x0)||1)*440,py=v=>20+(v-y0)/((y1-y0)||1)*270;
+const quad=`<svg viewBox="0 0 520 330" width="100%" role="img" aria-label="Points for versus points against per game"><rect x="50" y="20" width="440" height="270" fill="none" stroke="#777"/>
+<line x1="${px(lgPF)}" y1="20" x2="${px(lgPF)}" y2="290" stroke="#c93a14" stroke-dasharray="4 4" opacity=".6"/><line x1="50" y1="${py(lgPA)}" x2="490" y2="${py(lgPA)}" stroke="#c93a14" stroke-dasharray="4 4" opacity=".6"/>
+<text x="56" y="34" font-size="11" opacity=".6">Easy schedule, low scoring</text><text x="484" y="34" font-size="11" text-anchor="end" opacity=".6">Easy schedule, high scoring</text>
+<text x="56" y="284" font-size="11" opacity=".6">Tough schedule, low scoring</text><text x="484" y="284" font-size="11" text-anchor="end" opacity=".6">Tough schedule, high scoring</text>
+<text x="270" y="318" font-size="12" text-anchor="middle">Points scored per game →</text><text x="14" y="160" font-size="12" transform="rotate(-90 14 160)" text-anchor="middle">Points against per game →</text>
+${CS.map(t=>`<circle cx="${px(t.ppg)}" cy="${py(t.pag)}" r="15" fill="#f08a2c" fill-opacity="${.25+t.wp*.7}" stroke="#c93a14"/><text x="${px(t.ppg)}" y="${py(t.pag)+4}" font-size="11" font-weight="700" text-anchor="middle">${CODE(t.key)}</text>`).join('')}</svg>`;
+const prev=S[S.length-2],PS=prev?SS[prev.season]:null;
+$('matchups').innerHTML=card('Matchup map',`<div class="mut" style="margin-bottom:6px">Bottom right is the sweet spot: scoring a lot against a tough schedule. Brighter dots have better win %. Dashed lines are league averages.</div>${quad}<div class="mut">${TEAMS.map(t=>`${CODE(t.key)} = ${nm(t.key)}`).join(' · ')}</div>`)
++card('Strength of schedule','<div class="mut" style="margin-bottom:8px">Points opponents have scored against each team, per game. Higher = tougher opponents.</div>'+tbl(['','Team','PA/Gm','vs. League Avg','Pts Margin/Gm'],CS.slice().sort((a,b)=>b.pag-a.pag).map((t,i)=>[i+1,nm(t.key),f(t.pag),`<span class="${cls(-(t.pag-lgPA))}">${sg(t.pag-lgPA)}</span>`,`<span class="${cls(t.diff)}">${sg(t.wk?t.diff/t.wk:0)}</span>`])))
++card('Streaks','<div class="mut" style="margin-bottom:8px">Built from each team\'s game-by-game results across every season (head-to-head and median games both count).</div>'+tbl(['Team','Current','Best W Streak','Worst L Streak','This Season Best W','This Season Worst L'],TEAMS.slice().sort((a,b)=>runs(REC[b.key],'W')-runs(REC[a.key],'W')).map(t=>{const c=curRun(REC[t.key]);return[`<b>${nm(t.key)}</b>`,`<span class="${c[0]==='W'?'pos':'neg'}">${c}</span>`,runs(REC[t.key],'W'),runs(REC[t.key],'L'),runs(REC_CUR[t.key],'W'),runs(REC_CUR[t.key],'L')]})))
++(PS?card('Season-over-season scoring',tbl(['Team',`${esc(prev.season)} PF/Gm`,`${esc(cur.season)} PF/Gm`,'Change'],CS.map(t=>{const p=PS.find(x=>x.key===t.key);return{t,p,d:p&&p.wk?t.ppg-p.ppg:null}}).filter(x=>x.d!=null).sort((a,b)=>b.d-a.d).map(x=>[nm(x.t.key),f(x.p.ppg),f(x.t.ppg),`<b class="${cls(x.d)}">${sg(x.d)}</b>`]))):'');
+
+// ---------- WEEKLY ----------
+const weeklySeasons=S.filter(s=>weekly(s).wks.length).reverse();
+window.renderWeekly=function(y){
+const s=S.find(x=>String(x.season)===String(y));const W=weekly(s);if(!W.wks.length){$('weekly').innerHTML=card('Weekly','No completed weeks yet.');return}
+const T=Object.values(W.T);const all=[];T.forEach(t=>t.sc.forEach((x,i)=>all.push({k:t.k,w:W.wks[i].w,x})));
+const hi=all.reduce((a,b)=>b.x>a.x?b:a),lo=all.reduce((a,b)=>b.x<a.x?b:a),bl=W.G.reduce((a,b)=>b.m>a.m?b:a),cl=W.G.reduce((a,b)=>b.m<a.m?b:a),lt=W.G.reduce((a,b)=>b.ls>a.ls?b:a),wl=W.G.reduce((a,b)=>b.ws<a.ws?b:a);
+const sup=[['💥 Highest score',nm(hi.k),f(hi.x,2)+' pts, Week '+hi.w],['🧯 Lowest score',nm(lo.k),f(lo.x,2)+' pts, Week '+lo.w],['🔨 Biggest blowout',nm(bl.win),'Beat '+nm(bl.lose)+' by '+f(bl.m,2)+' (Wk '+bl.w+')'],['😬 Closest game',nm(cl.win),'Edged '+nm(cl.lose)+' by '+f(cl.m,2)+' (Wk '+cl.w+')'],['😭 Most points in a loss',nm(lt.lose),f(lt.ls,2)+' pts, lost to '+nm(lt.win)],['🍀 Fewest points in a win',nm(wl.win),f(wl.ws,2)+' pts, beat '+nm(wl.lose)]];
+const hl=(x,i)=>x===W.wks[i].mx?`<b style="color:var(--acc)">${f(x,2)}</b>`:x===W.wks[i].mn?`<span class="neg">${f(x,2)}</span>`:f(x,2);
+const m=hasMed(s);
+$('weekly').innerHTML=`<div>${weeklySeasons.map(x=>`<button class="pill${String(x.season)===String(y)?' on':''}" onclick="renderWeekly('${esc(x.season)}')">${esc(x.season)}</button>`).join('')}</div>`+grid(sup)+'<div style="height:12px"></div>'
++card('Weekly scores',`<div class="mut" style="margin-bottom:8px">Gold = top score that week, red = lowest.${m?' The last row is the median line for each week.':''}</div>`+tbl(['Team',...W.wks.map(w=>'Wk '+w.w),'Avg','Std Dev','Weekly Wins'],T.slice().sort((a,b)=>b.avg-a.avg).map(t=>[`<b>${nm(t.k)}</b>`,...t.sc.map((x,i)=>hl(x,i)),f(t.avg,2),'±'+f(t.sd),t.cr||'–']).concat(m?[[`<span class="mut">League median</span>`,...W.wks.map(w=>`<span class="mut">${f(w.md,2)}</span>`),'','','']]:[])))
++card('Head-to-head results',tbl(['Wk','Winner','','Loser','','Margin'],W.G.slice().sort((a,b)=>a.w-b.w||b.m-a.m).map(g=>[g.w,`<b>${nm(g.win)}</b>`,f(g.ws,2),nm(g.lose),f(g.ls,2),`<b>${f(g.m,2)}</b>`])))
++(m?card('How wins were earned',`<div class="mut" style="margin-bottom:8px">All-play is your record if you had played every other team every week. Lucky wins = won head-to-head but scored below the median. Unlucky losses = lost head-to-head despite an above-median score.</div>`+tbl(['Team','Head-to-Head','Vs. Median','All-Play','Lucky Wins','Unlucky Losses'],T.slice().sort((a,b)=>b.ap-a.ap).map(t=>[`<b>${nm(t.k)}</b>`,`${t.hw}-${t.hl}`,`${t.mw}-${t.ml}`,`${t.ap}-${t.sc.length*(T.length-1)-t.ap}`,t.lw?`<span class="pos">${t.lw}</span>`:'–',t.ul?`<span class="neg">${t.ul}</span>`:'–']))):'');
+};
+if(weeklySeasons.length)renderWeekly(weeklySeasons[0].season);else $('weekly').innerHTML=card('Weekly','No completed weeks yet.');
+
+// ---------- RIVALRIES ----------
+const HH={};TEAMS.forEach(a=>{HH[a.key]={};TEAMS.forEach(b=>{if(a.key!==b.key)HH[a.key][b.key]={w:0,l:0,pf:0,pa:0}})});
+GA.forEach(g=>{if(HH[g.win]&&HH[g.win][g.lose]){const W=HH[g.win][g.lose],L=HH[g.lose][g.win];W.w++;L.l++;W.pf+=g.ws;W.pa+=g.ls;L.pf+=g.ls;L.pa+=g.ws}});
+const cell=r=>!(r.w+r.l)?'<span class="mut">–</span>':`<span class="${r.w>r.l?'pos':r.w<r.l?'neg':''}">${r.w}-${r.l}</span>`;
+const near=GA.slice().sort((a,b)=>a.m-b.m).slice(0,10),far=GA.slice().sort((a,b)=>b.m-a.m).slice(0,10);
+const gt=l=>tbl(['Game','Winner','','Loser','','Margin'],l.map(g=>[gl(g),`<b>${nm(g.win)}</b>`,f(g.ws,2),nm(g.lose),f(g.ls,2),`<b>${f(g.m,2)}</b>`]));
+const ms=TEAMS.map(t=>{const gs=GA.filter(g=>g.a===t.key||g.b===t.key),ws=gs.filter(g=>g.win===t.key),ls=gs.filter(g=>g.lose===t.key);return{t,aw:ws.length?mean(ws.map(g=>g.m)):null,al:ls.length?mean(ls.map(g=>g.m)):null,cw:ws.filter(g=>g.m<10).length,cl:ls.filter(g=>g.m<10).length,bw:ws.filter(g=>g.m>=30).length,bl:ls.filter(g=>g.m>=30).length}}).sort((a,b)=>b.cw-a.cw||b.bw-a.bw);
+window.rvTeam=function(k){const rows=TEAMS.filter(o=>o.key!==k).map(o=>{const r=HH[k][o.key],n=r.w+r.l,gs=GA.filter(g=>(g.a===k&&g.b===o.key)||(g.b===k&&g.a===o.key)).sort((x,y)=>y.y-x.y||y.w-x.w),last=gs[0];
+return[`<b>${nm(o.key)}</b>`,cell(r),n?f((r.pf-r.pa)/n):'–',n?f(r.pf/n):'–',last?`${gl(last)}: ${last.win===k?'W':'L'} by ${f(last.m)}`:'Never played']});
+$('rvout').innerHTML=tbl(['Opponent','Record','Avg Margin','Avg Pts','Last Meeting'],rows)};
+const yrs=[...new Set(GA.map(g=>g.y))].sort();
+$('rivals').innerHTML=card('Record vs. every manager',`<div class="mut" style="margin-bottom:10px">Head-to-head games only, including playoffs (median games not counted). ${GA.length} games from ${yrs.join(', ')}.</div><select id="rvsel" onchange="rvTeam(this.value)">${TEAMS.map(t=>`<option value="${esc(t.key)}">${esc(t.name)}</option>`).join('')}</select><div id="rvout"></div>`)
++card('Rivalry matrix',`<div class="mut" style="margin-bottom:8px">Row team's record against the column team. ${TEAMS.map(t=>`${CODE(t.key)} = ${nm(t.key)}`).join(' · ')}</div>`+tbl(['Team',...TEAMS.map(t=>CODE(t.key))],TEAMS.map(a=>[`<b>${nm(a.key)}</b>`,...TEAMS.map(b=>a.key===b.key?'<span class="mut">■</span>':cell(HH[a.key][b.key]))])))
++card('Closest victories',gt(near))+card('Biggest blowouts',gt(far))
++card('Margin profile','<div class="mut" style="margin-bottom:8px">Close games are decided by under 10 points. Blowouts are 30 or more.</div>'+tbl(['Team','Avg Win Margin','Avg Loss Margin','Close Games','Blowout Wins','Blowout Losses'],ms.map(x=>[`<b>${nm(x.t.key)}</b>`,x.aw==null?'–':f(x.aw),x.al==null?'–':f(x.al),`${x.cw}-${x.cl}`,x.bw||'–',x.bl?`<span class="neg">${x.bl}</span>`:'–'])));
+if(TEAMS.length)rvTeam(TEAMS[0].key);
+
+// ---------- TRADES ----------
+const TRD=[];S.forEach(s=>(s.trades||[]).forEach(t=>{const keys=(t.rosters||[]).map(r=>s.map[r]).filter(Boolean);if(keys.length>=2)TRD.push({...t,s,keys})}));
+TRD.sort((a,b)=>b.ts-a.ts);
+const allDrafts=S.flatMap(s=>(s.drafts||[]).map(d=>({...d,s})));
+const pname=pid=>NAMES[pid]?esc(NAMES[pid]):'Player #'+esc(pid);
+function pickLabel(p,tr,rid){
+const yr=p[0],rd=p[1],orig=p[2],okey=tr.s.map[orig];
+let out=`${yr} round ${rd} pick <span class="mut">(${orig===rid?'own pick back':nm(okey)})</span>`;
+const d=allDrafts.find(x=>x.season===yr&&x.status==='complete'&&x.picks.length&&(!x.rounds||x.rounds>=rd));
+if(!d)return out+' <span class="mut">→ not drafted yet</span>';
+let slot=d.order?d.order[okey]:null;
+if(slot==null&&d.slots)slot=Number(Object.keys(d.slots).find(k=>String(d.slots[k])===String(orig)));
+const pk=d.picks.find(x=>x.r===rd&&x.slot===slot);
+if(!pk)return out+' <span class="mut">→ not drafted yet</span>';
+const pir=pk.n-(rd-1)*(d.teams||TEAMS.length);
+return out+` → <b>${esc(pk.name||'Unknown')}</b> <span class="mut">(${rd}.${String(pir).padStart(2,'0')})</span>`;}
+const tcount=TEAMS.map(t=>{const m=TRD.filter(x=>x.keys.includes(t.key));const by={};S.forEach(s=>by[s.season]=m.filter(x=>x.s===s).length);
+const c=(fnp,fnk)=>m.reduce((n,x)=>n+Object.entries(x.adds).filter(([,rid])=>fnp(x.s.map[rid]===t.key)).length,0);
+return{t,n:m.length,by,pin:c(v=>v),pout:c(v=>!v),kin:m.reduce((n,x)=>n+x.picks.filter(p=>x.s.map[p[3]]===t.key).length,0),kout:m.reduce((n,x)=>n+x.picks.filter(p=>x.s.map[p[3]]!==t.key).length,0)}}).sort((a,b)=>b.n-a.n);
+const tp={};TRD.forEach(x=>{const k=[...x.keys].sort().join('|');tp[k]=(tp[k]||0)+1});
+const topP=Object.entries(tp).sort((a,b)=>b[1]-a[1])[0];
+const tied=tcount.filter(x=>x.n===(tcount[0]?tcount[0].n:0)).length;
+const kmax=tcount.slice().sort((a,b)=>b.kin-a.kin)[0];
+$('trades').innerHTML=grid([['🔁 Trades loaded',TRD.length,'Seasons: '+[...new Set(TRD.map(x=>x.s.season))].join(', ')],
+['🤝 Most active trader',tcount.length&&tcount[0].n?(tied>1?tied+'-way tie':nm(tcount[0].t.key)):'–',tcount.length&&tcount[0].n?tcount[0].n+' trade'+(tcount[0].n>1?'s':'')+(tied>1?' each':''):''],
+['💞 Top trade partners',topP?topP[0].split('|').map(nm).join(' + '):'–',topP?topP[1]+' trade'+(topP[1]>1?'s':''):''],
+['🎟️ Most picks acquired',kmax&&kmax.kin?nm(kmax.t.key):'–',kmax&&kmax.kin?kmax.kin+' picks received':'']])+'<div style="height:12px"></div>'
++card('Trades by team','<div class="mut" style="margin-bottom:8px">Every trade in the league history. Players and picks are counted as received (in) and sent (out).</div>'+tbl(['Team','Total',...S.map(s=>esc(s.season)),'Players In','Players Out','Picks In','Picks Out'],tcount.map(x=>[`<b>${nm(x.t.key)}</b>`,`<b style="color:var(--acc)">${x.n}</b>`,...S.map(s=>x.by[s.season]||'–'),x.pin||'–',x.pout||'–',x.kin||'–',x.kout||'–'])))
++card('Who trades with whom',`<div class="mut" style="margin-bottom:8px">${TEAMS.map(t=>`${CODE(t.key)} = ${nm(t.key)}`).join(' · ')}</div>`+tbl(['Team',...TEAMS.map(t=>CODE(t.key))],TEAMS.map(a=>[`<b>${nm(a.key)}</b>`,...TEAMS.map(b=>{if(a.key===b.key)return'<span class="mut">■</span>';const n=TRD.filter(x=>x.keys.includes(a.key)&&x.keys.includes(b.key)).length;return n?`<b style="color:var(--acc)">${n}</b>`:'<span class="mut">–</span>'})])))
++'<h2 style="color:var(--acc);font-size:15px;margin:16px 0 10px">Trade log</h2>'
++(TRD.length?TRD.map(x=>card(`${tdate(x.ts)} <span class="mut">· ${esc(x.s.season)} season</span>`,`<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">${x.keys.map((k,i)=>{const rid=x.rosters[i],items=[...Object.entries(x.adds).filter(([,r])=>r===rid).map(([pid])=>pname(pid)),...x.picks.filter(p=>p[3]===rid).map(p=>pickLabel(p,x,rid))];return`<div><b>${nm(k)}</b> <span class="mut">receives</span><div style="margin-top:4px">${items.join('<br>')||'<span class="mut">nothing</span>'}</div></div>`}).join('')}</div>`)).join(''):card('Trade log','No trades yet.'));
+
+// ---------- AWARDS ----------
+const mx=(a,k,d=1)=>a.slice().sort((x,y)=>d*(y[k]-x[k]))[0];
+const A=[['🔥 Top scorer',mx(CS,'pf'),t=>f(t.pf)+' pts'],['🧱 Stingiest defense',mx(CS,'pa',-1),t=>f(t.pa)+' pts against'],['🎯 Most efficient',mx(CS,'eff'),t=>f(t.eff)+'% of max'],
+['🪑 Bench disaster',mx(CS.map(t=>({...t,left:t.pp-t.pf})),'left'),t=>f(t.left)+' pts left on bench'],['🍀 Luckiest',mx(CS,'luck'),t=>sg(t.luck)+' wins vs. expected'],['💀 Unluckiest',mx(CS,'luck',-1),t=>sg(t.luck)+' wins vs. expected'],
+['📈 Best point diff',mx(CS,'diff'),t=>sg(t.diff)],['📉 Worst point diff',mx(CS,'diff',-1),t=>sg(t.diff)],['⚡ Power ranking #1',mx(CS,'pow'),t=>f(t.pow,2)+' power score'],
+['🛡️ Toughest schedule',mx(CS,'pag'),t=>f(t.pag)+' PA/Gm'],['🛋️ Easiest schedule',mx(CS,'pag',-1),t=>f(t.pag)+' PA/Gm'],['⭐ Highest ceiling',mx(CS,'pp'),t=>f(t.pp)+' max pts']];
+if(PS){const dd=CS.map(t=>{const p=PS.find(x=>x.key===t.key);return p&&p.wk?{...t,d:t.ppg-p.ppg}:null}).filter(Boolean);if(dd.length)A.push(['🔼 Most improved scoring',mx(dd,'d'),t=>sg(t.d)+' PF/Gm vs. last year'],['🔽 Biggest scoring drop',mx(dd,'d',-1),t=>sg(t.d)+' PF/Gm vs. last year']);}
+const RT=TEAMS.map(t=>({...t,ws:runs(REC[t.key],'W'),ls:runs(REC[t.key],'L')}));
+A.push(['🏃 Longest win run ever',mx(RT,'ws'),t=>t.ws+' straight wins'],['🧊 Longest losing run ever',mx(RT,'ls'),t=>t.ls+' straight losses']);
+const WT=Object.values(WCUR.T).filter(t=>t.sc.length);
+if(WT.length){const AL=[];WT.forEach(t=>t.sc.forEach((x,i)=>AL.push({k:t.k,w:WCUR.wks[i].w,x})));const hi=AL.reduce((a,b)=>b.x>a.x?b:a),lo=AL.reduce((a,b)=>b.x<a.x?b:a),bl=WCUR.G.reduce((a,b)=>b.m>a.m?b:a),cl=WCUR.G.reduce((a,b)=>b.m<a.m?b:a);
+const V=WT.map(t=>({...t,key:t.k}));
+A.push(['💥 Highest single score',{key:hi.k},()=>f(hi.x,2)+' pts in Week '+hi.w],['🧯 Lowest single score',{key:lo.k},()=>f(lo.x,2)+' pts in Week '+lo.w],['🔨 Biggest blowout',{key:bl.win},()=>'Beat '+nm(bl.lose)+' by '+f(bl.m,2)],['😬 Closest win',{key:cl.win},()=>'Edged '+nm(cl.lose)+' by '+f(cl.m,2)],
+['👑 Most weekly high scores',mx(V,'cr'),t=>t.cr+' week'+(t.cr>1?'s':'')+' as top scorer'],['🎢 Most consistent',mx(V,'sd',-1),t=>'±'+f(t.sd)+' week to week'],['🎰 Boom or bust',mx(V,'sd'),t=>'±'+f(t.sd)+' week to week'],['🌐 Best all-play record',mx(V,'ap'),t=>t.ap+'-'+(t.sc.length*(V.length-1)-t.ap)+' vs. everyone']);
+if(hasMed(cur))A.push(['😭 Most unlucky losses',mx(V,'ul'),t=>t.ul+' lost with an above-median score'],['🤑 Most lucky wins',mx(V,'lw'),t=>t.lw+' won with a below-median score']);}
+$('awards').innerHTML=`<div class="mut" style="margin-bottom:8px">${esc(cur.season)} season so far${REC[TEAMS[0].key]?', with streaks across all seasons':''}.</div>`+grid(A.filter(a=>a[1]&&a[1].key).map(a=>[a[0],nm(a[1].key),a[2](a[1])]));
+
+// ---------- HISTORY ----------
+const ch=done.filter(s=>champ(s));
+const seasonTable=s=>{const rows=SS[s.season].slice().sort((a,b)=>b.w-a.w||b.pf-a.pf),pl=placements(s),c=champ(s);
+return card(`${esc(s.season)} final standings`,tbl(['#','Team','W-L','PF','PA','Eff.','Luck','Playoffs'],rows.map((t,i)=>[i+1,`<b>${t.key===c?'<span class="crown">👑</span> ':''}${nm(t.key)}</b>`,`${t.w}-${t.l}`,f(t.pf),f(t.pa),f(t.eff)+'%',`<span class="${cls(t.luck)}">${sg(t.luck)}</span>`,pl[t.key]||'Missed']),(s.settings.playoff_teams||6)-1))};
+const AT=TEAMS.map(t=>{let w=0,l=0,pf=0,pa=0;S.forEach(s=>{const r=SS[s.season].find(x=>x.key===t.key);if(r){w+=r.w;l+=r.l;pf+=r.pf;pa+=r.pa}});return{t,w,l,pf,pa,ti:titles(t.key).length}}).sort((a,b)=>b.w/((b.w+b.l)||1)-a.w/((a.w+a.l)||1));
+$('history').innerHTML=card('Champions',ch.length?tbl(['Season','Champion','Runner-up'],ch.slice().reverse().map(s=>[esc(s.season),`<span class="crown">👑</span> <b>${nm(champ(s))}</b>`,runner(s)?nm(runner(s)):'–'])):'No champions yet.')
++done.slice().reverse().map(seasonTable).join('')
++card('All-time record',`<div class="mut" style="margin-bottom:8px">${S.map(s=>s.season).join(', ')} (this season through the latest completed week).</div>`+tbl(['#','Team','W-L','Win %','PF','PA','Titles'],AT.map((x,i)=>[i+1,`<b>${nm(x.t.key)}</b>`,`${x.w}-${x.l}`,f(x.w/((x.w+x.l)||1)*100)+'%',f(x.pf),f(x.pa),x.ti||'–'])))
++card('League settings',`<div class="mut" style="line-height:1.8">${TEAMS.length} teams · ${cur.settings.playoff_teams||6} playoff teams, playoffs start Week ${ps(cur)}${cur.settings.trade_deadline?' · Trade deadline Week '+cur.settings.trade_deadline:''}<br>${hasMed(cur)?'Every team also plays the league median each week.':''}</div>`);
+}
+</script>
+</body>
+</html>
