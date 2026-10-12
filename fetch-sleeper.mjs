@@ -5,6 +5,8 @@ import fs from 'node:fs/promises';
 const API = 'https://api.sleeper.app/v1';
 const OUT = 'data/league.json';
 const NAMES = 'data/names.json';
+const PLAYERS = 'data/players.json';
+const DATA_VERSION = 2; // bump to rebuild finished seasons once when the saved shape changes
 const FULL = process.env.FULL_REFRESH === 'true';
 let calls = 0;
 
@@ -74,9 +76,9 @@ const draftNames = {};
 
 async function buildSeason(L) {
   const old = prevById[L.league_id];
-  if (!FULL && old && old.status === 'complete' && L.status === 'complete') {
+  if (!FULL && old && old.v === DATA_VERSION && old.status === 'complete' && L.status === 'complete') {
     console.log(`Reusing ${L.season} (complete)`);
-    (old.drafts || []).forEach(d => d.picks.forEach(p => { if (p.pid && p.name) draftNames[p.pid] = p.name; }));
+    (old.drafts || []).forEach(d => d.picks.forEach(p => { if (p.pid && p.name) draftNames[p.pid] = [p.name, p.pos || '']; }));
     return old;
   }
   const id = L.league_id;
@@ -94,7 +96,7 @@ async function buildSeason(L) {
   (users || []).forEach(u => { byUser[u.user_id] = u; });
   const teams = (rosters || []).map(r => {
     const u = byUser[r.owner_id] || {};
-    return { roster_id: r.roster_id, owner_id: r.owner_id || null, display_name: u.display_name || '', team_name: u.metadata?.team_name || '' };
+    return { roster_id: r.roster_id, owner_id: r.owner_id || null, display_name: u.display_name || '', team_name: u.metadata?.team_name || '', avatar: u.metadata?.avatar || (u.avatar ? `https://sleepercdn.com/avatars/thumbs/${u.avatar}` : null) };
   });
   const standings = (rosters || []).map(r => {
     const s = r.settings || {};
@@ -108,7 +110,17 @@ async function buildSeason(L) {
   });
 
   const weekRows = [];
-  weeks.forEach((w, i) => { const games = toGames(mu[i]); if (games.length) weekRows.push({ week: w, games }); });
+  weeks.forEach((w, i) => {
+    const games = toGames(mu[i]);
+    if (!games.length) return;
+    // Each team's starters that week as [player_id, points] (empty slots left out).
+    const lu = {};
+    for (const m of mu[i] || []) {
+      if (m.matchup_id == null || !Array.isArray(m.starters)) continue;
+      lu[m.roster_id] = m.starters.map((pid, k) => [String(pid), r2(m.starters_points?.[k])]).filter(([pid]) => pid && pid !== '0');
+    }
+    weekRows.push({ week: w, games, lu });
+  });
 
   const trades = [];
   tx.forEach((arr, i) => (arr || []).forEach(t => {
@@ -139,17 +151,18 @@ async function buildSeason(L) {
         }))
       };
     }
-    entry.picks.forEach(p => { if (p.pid && p.name) draftNames[p.pid] = p.name; });
+    entry.picks.forEach(p => { if (p.pid && p.name) draftNames[p.pid] = [p.name, p.pos || '']; });
     drafts.push(entry);
   }
 
   const s = L.settings || {};
   return {
-    season: L.season, league_id: id, name: L.name, status: L.status,
+    v: DATA_VERSION, season: L.season, league_id: id, name: L.name, status: L.status, avatar: L.avatar || null,
     settings: {
       playoff_week_start: s.playoff_week_start || 15, playoff_teams: s.playoff_teams || 6,
       median: s.league_average_match === 1, trade_deadline: s.trade_deadline || null,
-      teams: L.total_rosters || teams.length
+      teams: L.total_rosters || teams.length,
+      roster_positions: (L.roster_positions || []).filter(p => !['BN', 'IR', 'TAXI'].includes(p))
     },
     teams, standings, weeks: weekRows, trades, bracket: bracket || [], drafts
   };
@@ -159,30 +172,47 @@ const built = [];
 for (const L of leagues) built.push(await buildSeason(L));
 built.sort((a, b) => Number(a.season) - Number(b.season));
 
-// Resolve names for every traded player (cached in data/names.json).
-const traded = new Set();
-built.forEach(s => s.trades.forEach(t => Object.keys(t.adds).forEach(p => traded.add(p))));
-traded.forEach(pid => { if (!names[pid] && draftNames[pid]) names[pid] = draftNames[pid]; });
-const missing = [...traded].filter(p => !names[p]);
+// Resolve a name and position for every player the site shows: traded players,
+// drafted players and every starter. Cached in data/players.json so the big
+// Sleeper player list is only downloaded when someone new shows up.
+const players = (await readJSON(PLAYERS)) || {};
+Object.entries(names).forEach(([pid, n]) => { if (!players[pid] && n && !/^Player #/.test(n)) players[pid] = [n, '']; });
+const wanted = new Set();
+built.forEach(s => {
+  s.trades.forEach(t => Object.keys(t.adds).forEach(p => wanted.add(p)));
+  (s.drafts || []).forEach(d => d.picks.forEach(p => p.pid && wanted.add(String(p.pid))));
+  s.weeks.forEach(w => Object.values(w.lu || {}).forEach(l => l.forEach(([pid]) => wanted.add(pid))));
+});
+wanted.forEach(pid => {
+  const d = draftNames[pid];
+  if (d && (!players[pid] || !players[pid][1])) players[pid] = [d[0], d[1] || (players[pid] && players[pid][1]) || ''];
+});
+const missing = [...wanted].filter(p => !players[p] || !players[p][1]);
 if (missing.length) {
-  console.log(`Looking up ${missing.length} player name(s) in the full player list...`);
+  console.log(`Looking up ${missing.length} player(s) in the full player list...`);
   const all = await get('/players/nfl', { optional: true });
   if (all) missing.forEach(pid => {
     const p = all[pid];
-    names[pid] = (p && (p.full_name || [p.first_name, p.last_name].filter(Boolean).join(' '))) || `Player #${pid}`;
+    const name = p && (p.full_name || [p.first_name, p.last_name].filter(Boolean).join(' '));
+    // Team defenses have no name fields, just a team code.
+    const nm = name || (p && p.position === 'DEF' && p.team ? `${p.team} Defense` : null) || (players[pid] && players[pid][0]) || (/^[A-Z]{2,3}$/.test(pid) ? `${pid} Defense` : `Player #${pid}`);
+    // '?' marks a player the list doesn't know, so it isn't looked up again every run.
+    players[pid] = [nm, (p && (p.position || p.fantasy_positions?.[0])) || (/^[A-Z]{2,3}$/.test(pid) ? 'DEF' : '?')];
   });
 }
-const outNames = {};
-traded.forEach(pid => { if (names[pid]) outNames[pid] = names[pid]; });
+const outNames = {}, outPos = {};
+wanted.forEach(pid => { const p = players[pid]; if (p) { outNames[pid] = p[0]; if (p[1] && p[1] !== '?') outPos[pid] = p[1]; } });
+Object.keys(players).forEach(pid => { if (players[pid][0]) names[pid] = players[pid][0]; });
 
 const body = {
   state: { season: state.season, week: state.week, season_type: state.season_type },
-  seasons: built, names: outNames
+  seasons: built, names: outNames, pos: outPos
 };
 const strip = o => JSON.stringify({ ...o, generated: undefined });
 const prevBody = prev ? strip(prev) : null;
 await fs.mkdir('data', { recursive: true });
 await fs.writeFile(NAMES, JSON.stringify(names));
+await fs.writeFile(PLAYERS, JSON.stringify(players));
 if (prevBody === strip(body)) {
   console.log(`No data changes (${calls} API calls).`);
 } else {

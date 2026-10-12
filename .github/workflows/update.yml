@@ -11,7 +11,7 @@ on:
         default: false
   push:
     branches: [main]
-    paths: ['index.html', 'config.json', 'fetch-sleeper.mjs']
+    paths: ['index.html', 'sw.js', 'site.webmanifest', 'assets/**', 'config.json', 'fetch-sleeper.mjs']
 
 permissions:
   contents: write
@@ -62,7 +62,8 @@ jobs:
         if: steps.commit.outputs.deploy == 'true'
         run: |
           mkdir _site
-          cp index.html _site/
+          cp index.html sw.js site.webmanifest _site/
+          cp -r assets _site/assets
           cp -r data _site/data
 
       - uses: actions/configure-pages@v5
