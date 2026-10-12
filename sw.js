@@ -1,7 +1,7 @@
 // Offline fallback for the Home Screen app. Always tries the network first, so
 // the site is never stale while online; the cached copy is only used when
 // there is no connection.
-const CACHE = 'rd-v1';
+const CACHE = 'rd-v2';
 const SHELL = ['./', 'index.html', 'assets/app.css', 'assets/app.js', 'assets/eggs.js', 'assets/icons/icon-192.png'];
 
 self.addEventListener('install', e => {

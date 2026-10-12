@@ -1006,7 +1006,7 @@ function renderNav(active) {
     <nav class="nav-inline" aria-label="Pages">${PAGES.map(p => `<a href="#/${p[0] === 'home' ? '' : p[0]}" class="${p[0] === pageOf(active) ? 'active' : ''}"${p[0] === pageOf(active) ? ' aria-current="page"' : ''}>${p[1]}</a>`).join('')}</nav>
     <button class="me-btn" type="button" onclick="RD.pickMe()" aria-label="Choose your team">${ME && M && M.TM[ME] ? `${av(ME, 'sm')}<span class="t">${nm(ME)}</span>` : '<span class="av sm" style="--h:40">?</span><span class="t">This is me</span>'}</button></div>
     <div class="backdrop" id="backdrop"></div>
-    <nav class="drawer" id="drawer" aria-hidden="true" aria-label="Pages"><div class="drawer-head"><span class="brand-logo">${esc(ini)}</span><div class="brand-page">${esc(ln)}</div></div>${PAGES.map(p => `<a href="#/${p[0] === 'home' ? '' : p[0]}" class="${p[0] === pageOf(active) ? 'active' : ''}"><span class="ic">${p[2]}</span>${p[1]}</a>`).join('')}<div class="drawer-foot">${M && D.generated ? `Updated ${esc(ago(D.generated))}` : ''}<br>Data from Sleeper</div></nav>`;
+    <nav class="drawer" id="drawer" aria-hidden="true" aria-label="Pages"><div class="drawer-head"><span class="brand-logo">${esc(ini)}</span><div class="brand-page">${esc(ln)}</div></div>${PAGES.map(p => `<a href="#/${p[0] === 'home' ? '' : p[0]}" class="${p[0] === pageOf(active) ? 'active' : ''}"><span class="ic">${p[2]}</span>${p[1]}</a>`).join('')}${isInstalled() ? '' : `<button type="button" class="drawer-add" onclick="RD.installSheet()"><span class="ic">${ADD_SVG}</span>Add to Home Screen</button>`}<div class="drawer-foot">${M && D.generated ? `Updated ${esc(ago(D.generated))}` : ''}<br>Data from Sleeper</div></nav>`;
   $('#nav-toggle').onclick = () => $('#drawer').classList.contains('open') ? closeNav() : openNav();
   $('#backdrop').onclick = closeNav;
   $$('#drawer a').forEach(a => a.addEventListener('click', closeNav));
@@ -1069,16 +1069,49 @@ async function share() {
   try { await navigator.clipboard.writeText(url); toast('Link copied'); } catch (e) { prompt('Copy this link:', url); }
 }
 
-/* ---------- Add to Home Screen nudge (iPhone Safari, not already installed) ---------- */
-function a2hs() {
-  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent), standalone = window.navigator.standalone || matchMedia('(display-mode: standalone)').matches;
-  if (!ios || standalone || LS.get('rd-a2hs') || !$('#app')) return;
-  const el = document.createElement('section'); el.className = 'glass a2hs rise'; el.style.marginBottom = '14px';
-  el.innerHTML = `<img src="assets/icons/icon-192.png" alt=""><div style="min-width:0"><b>Add it to your Home Screen</b><div class="dim" style="font-size:.78rem;margin-top:2px">Tap <b>Share</b> <svg class="share-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v13M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg> in Safari, then <b>Add to Home Screen</b>.</div></div><button class="x-btn" type="button" aria-label="Dismiss">✕</button>`;
-  $('.x-btn', el).onclick = () => { LS.set('rd-a2hs', '1'); el.remove(); };
-  if (parseHash().r === 'home') $('#app').prepend(el);
+/* ---------- Add to Home Screen pop-up ----------
+   iPhone/iPad: a sheet with the Share → Add to Home Screen steps (Safari has no
+   install button a page can trigger). Android/desktop Chrome: a one-tap Install
+   button. Shows a few seconds into a visit; "Not now" waits two weeks, "Don't
+   show again" stops it for good, and the menu can always bring it back. */
+const UA = navigator.userAgent;
+const IOS = /iphone|ipad|ipod/i.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const IOS_OTHER = IOS && /CriOS|FxiOS|EdgiOS|OPiOS|GSA\//.test(UA);
+const isInstalled = () => !!(window.navigator.standalone || matchMedia('(display-mode: standalone)').matches || LS.get('rd-installed'));
+let installEvt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; });
+window.addEventListener('appinstalled', () => { LS.set('rd-installed', '1'); closeSheet(); toast('Added to your Home Screen'); });
+const SHARE_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>';
+const ADD_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/></svg>';
+const DOTS_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18" cy="12" r="1.8"/></svg>';
+function installSheet(fromMenu) {
+  const head = `<div class="ins-hero"><img src="assets/icons/icon-192.png" alt="" width="64" height="64"><div><b>Retirement Dynasty</b><span>Opens full screen like an app, one tap from your Home Screen. Scores refresh on their own.</span></div></div>`;
+  const foot = fromMenu ? '' : `<div class="ins-btns"><button type="button" class="ins-btn ghost" onclick="RD.installLater(false)">Don't show again</button><button type="button" class="ins-btn" onclick="RD.installLater(true)">Got it</button></div>`;
+  let body;
+  if (IOS) {
+    const step = (n, ic, html) => `<li class="ins-step"><span class="ins-n">${n}</span><span class="ins-ic${n === 1 ? ' pulse-ic' : ''}">${ic}</span><span>${html}</span></li>`;
+    body = head + `<ol class="ins-steps">
+      ${step(1, SHARE_SVG, IOS_OTHER ? 'Tap the <b>Share</b> button in the address bar.' : 'Tap the <b>Share</b> button in Safari\'s toolbar. <span class="dim">Don\'t see it? Tap <span class="ins-inline">' + DOTS_SVG + '</span> first.</span>')}
+      ${step(2, ADD_SVG, 'Scroll down and tap <b>Add to Home Screen</b>.')}
+      ${step(3, '<b class="ins-add">Add</b>', 'Tap <b>Add</b> in the top corner. Done.')}
+    </ol>` + foot;
+  } else if (installEvt) {
+    body = head + `<button type="button" class="ins-btn wide" onclick="RD.installNow()">Install the app</button>` + foot;
+  } else {
+    body = head + `<ol class="ins-steps"><li class="ins-step"><span class="ins-n">1</span><span class="ins-ic">${DOTS_SVG}</span><span>Open your browser's menu.</span></li><li class="ins-step"><span class="ins-n">2</span><span class="ins-ic">${ADD_SVG}</span><span>Choose <b>Add to Home screen</b> or <b>Install app</b>.</span></li></ol>` + foot;
+  }
+  openSheet('Add to Home Screen', '', body);
 }
-
+function a2hs() {
+  if (isInstalled() || LS.get('rd-a2hs-never')) return;
+  const snooze = Number(LS.get('rd-a2hs-later') || 0);
+  if (Date.now() < snooze) return;
+  const mobile = IOS || /android/i.test(UA);
+  setTimeout(() => {
+    if (document.hidden || $('#sheet') || $('#drawer.open') || isInstalled()) return;
+    if (IOS || (mobile && installEvt)) installSheet(false);
+  }, 4000);
+}
 /* ---------- data loading + refresh ---------- */
 async function fetchData() {
   const r = await fetch('data/league.json?' + Date.now(), { cache: 'no-store' });
@@ -1100,6 +1133,9 @@ async function refresh(silent) {
 
 window.RD = {
   go, share, openGame, closeSheet, setMe, pickMe, refresh,
+  installSheet: () => { closeNav(); installSheet(true); },
+  installLater(soon) { LS.set(soon ? 'rd-a2hs-later' : 'rd-a2hs-never', soon ? String(Date.now() + 14 * 864e5) : '1'); closeSheet(); if (!soon) toast('You can still find it in the menu'); },
+  async installNow() { if (!installEvt) return; installEvt.prompt(); const r = await installEvt.userChoice.catch(() => null); installEvt = null; closeSheet(); if (r && r.outcome === 'accepted') LS.set('rd-installed', '1'); },
   homeWeek: w => replace('home/' + w),
   stdYear: y => replace('standings/' + y),
   weeklyYear: y => replace('weekly/' + y),
