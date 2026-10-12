@@ -77,7 +77,7 @@ b,strong{font-weight:700}
 .drawer a.active{color:var(--gold-ink);background:var(--gold)}
 .drawer a.active .ic{filter:none}
 .drawer-foot{margin-top:auto;padding:16px 12px 0;color:var(--text-faint);font-size:.75rem}
-@media (min-width:1180px){.nav-inline{display:flex}.nav-toggle{display:none}.brand{flex:none}}
+@media (min-width:1400px){.nav-inline{display:flex}.nav-toggle{display:none}.brand{flex:none}}
 
 /* ---------- Page frame ---------- */
 .wrap{max-width:980px;margin:0 auto;padding:16px 14px calc(40px + env(safe-area-inset-bottom,0px))}

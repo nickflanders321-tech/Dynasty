@@ -490,6 +490,15 @@ function buildFacts() {
       if (mine) add(true, `${whose(x.key)} all-time MVP is <b>${esc(M.pname(mine.pid))}</b>: <b>${f2(mine.pts)}</b> points across ${plural(mine.n, 'start')}.`, x.key, 'player');
     });
   }
+  // money
+  const MO = money();
+  if (MO.list.some(r => r.won)) {
+    let q = tops(MO.list, r => r.net); add(q.v > 0, `${whoAll(q.items.map(r => r.k))} ${q.items.length > 1 ? 'are' : 'is'} up <b>${usd(q.v)}</b> all time in league buy-ins.`, q.items.map(r => r.k), 'money');
+    const dry = MO.list.filter(r => r.paid && !r.won).sort((a, b) => b.paid - a.paid);
+    if (dry.length) add(true, `${andList(dry.slice(0, 4).map(r => who(r.k)))} ${dry.length > 1 ? 'have' : 'has'} paid <b>${usd(dry[0].paid)}</b> in buy-ins without a cent back${dry.length > 4 ? ', along with others' : ''}.`, dry.map(r => r.k), 'money');
+    if (MO.live.length) { const s = MO.live[MO.live.length - 1]; add(true, `<b>${usd(s.teams.length * BUY_IN - BUY_IN)}</b> goes to the ${esc(s.season)} champion. The runner-up just gets their <b>${usd(BUY_IN)}</b> back.`, [], 'money'); }
+    add(true, `The league has paid out <b>${usd(MO.paidOut)}</b> in winnings since ${esc(S[0].season)}.`, [], 'money');
+  }
   return F;
 }
 
@@ -533,6 +542,33 @@ function startLore(id, facts, ms) {
   el.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
   el.addEventListener('touchend', e => { if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null; if (dx > 40) { e.preventDefault(); prev(); } else if (dx < -40) { e.preventDefault(); next(true); } });
   pos = 0; hist.push(draw()); show(hist[0], true);
+}
+
+/* =====================================================================
+   League money: $50 buy-in per team each season. The runner-up gets their
+   buy-in back and the champion takes the rest of the pot.
+   ===================================================================== */
+const BUY_IN = 50;
+const usd = n => (n < 0 ? '−' : '') + '$' + f0(Math.abs(n));
+const usdS = n => (n > 0 ? '+' : '') + usd(n);
+function money() {
+  if (M.money) return M.money;
+  const R = {};
+  M.S.forEach(s => {
+    const pot = s.teams.length * BUY_IN, done = !!s.champ;
+    s.teams.forEach(t => {
+      const k = s.map[t.roster_id];
+      const r = R[k] || (R[k] = { k, paid: 0, won: 0, live: 0, seasons: {}, titles: 0, cashed: 0 });
+      if (!done) { r.live += BUY_IN; r.seasons[s.season] = null; return; }
+      const w = s.champ === k ? pot - BUY_IN : s.runner === k ? BUY_IN : 0;
+      r.paid += BUY_IN; r.won += w; r.seasons[s.season] = w - BUY_IN;
+      if (s.champ === k) r.titles++; if (w > 0) r.cashed++;
+    });
+  });
+  Object.values(R).forEach(r => { r.net = r.won - r.paid; r.roi = r.paid ? r.net / r.paid : 0; });
+  const list = Object.values(R).sort((a, b) => b.net - a.net || b.won - a.won);
+  const live = M.S.filter(s => !s.champ);
+  return (M.money = { R, list, live, paidAll: list.reduce((n, r) => n + r.paid + r.live, 0), paidOut: list.reduce((n, r) => n + r.won, 0) });
 }
 
 /* =====================================================================
@@ -730,7 +766,7 @@ P.team = function (args) {
       ['🌐 All-play', c.apn ? `${c.ap}-${c.apn - c.ap}` : '–', c.apn ? f(c.ap / c.apn * 100) + '% vs everyone' : ''], ['📊 Avg finish', c.avgRank ? ord(Math.round(c.avgRank)) : '–', 'Regular season'],
       ['💥 Best week', his[0] ? f2(his[0].me) : '–', his[0] ? M.gameLabel(his[0].g) : '', his[0] ? `RD.openGame(${his[0].g.id})` : ''], ['🧯 Worst week', his.length ? f2(his[his.length - 1].me) : '–', his.length ? M.gameLabel(his[his.length - 1].g) : '', his.length ? `RD.openGame(${his[his.length - 1].g.id})` : ''],
       ['🔥 Longest win run', c.ws, 'Median games included'], ['🧊 Longest skid', c.ls, 'Median games included'],
-      ['👑 Weekly high scores', c.hiW, 'Times as the week\'s top scorer'], ['🪫 Weekly low scores', c.loW, 'Times as the week\'s lowest']]));
+      ['👑 Weekly high scores', c.hiW, 'Times as the week\'s top scorer'], ['🪫 Weekly low scores', c.loW, 'Times as the week\'s lowest'], (() => { const mr = money().R[k]; return mr ? ['💰 League money', `<span class="${cls(mr.net)}">${usdS(mr.net)}</span>`, `Won ${usd(mr.won)} on ${usd(mr.paid)} in`, "RD.go('money')"] : ['💰 League money', '–', '']; })()]));
     h += '<div class="gap"></div>';
     h += card('Season by season', table(['Season', '', 'Finish', 'W-L', 'PF', 'PA', 'Eff.', 'Luck'], c.seasons.slice().reverse().map(x => [`<a class="link" href="#/standings/${esc(x.y)}">${esc(x.y)}</a>`, x.champ ? '🏆' : x.runner ? '🥈' : '', x.live ? `${ord(x.rank)} <span class="dim">(now)</span>` : x.place ? `${ord(x.place)}` : `${ord(x.rank)} <span class="dim">reg.</span>`, x.r ? `${x.r.w}-${x.r.l}` : '–', x.r ? f(x.r.pf) : '–', x.r ? f(x.r.pa) : '–', x.r ? f(x.r.eff) + '%' : '–', x.r ? `<span class="${cls(x.r.luck)}">${sg(x.r.luck)}</span>` : '–']), { stick: false }), { note: 'Finish is the final playoff placing where there is one, otherwise the regular-season spot.' });
     // weekly finish histogram
@@ -957,6 +993,33 @@ P.awards = function () {
   return h;
 };
 
+/* ---------- PROFITS ---------- */
+P.money = function () {
+  const { R, list, live, paidAll, paidOut } = money();
+  const done = M.finished, seasons = M.S;
+  let h = pageHead('Profits', 'League money', `$${BUY_IN} buy-in · runner-up gets it back · champion takes the rest`);
+  const curPot = live.length ? live[live.length - 1].teams.length * BUY_IN : 0;
+  h += `<section class="glass hero rise"><div class="hero-main"><div class="eyebrow">${live.length ? esc(live[live.length - 1].season) + ' pot' : 'Paid out so far'}</div><div class="hero-name gold">${usd(live.length ? curPot : paidOut)}</div><div class="hero-sub">${live.length ? `<span class="badge gold">🏆 Champion ${usd(curPot - BUY_IN)}</span><span class="badge">🥈 Runner-up ${usd(BUY_IN)} back</span>` : ''}</div></div>
+    <div class="stat-row" style="--n:3"><div><div class="sv">${usd(paidAll)}</div><div class="sl">Paid in since ${esc(seasons[0].season)}</div></div><div><div class="sv">${usd(paidOut)}</div><div class="sl">Paid out</div></div><div><div class="sv">${done.length}</div><div class="sl">Pots decided</div></div></div></section><div class="gap"></div>`;
+  // leaderboard
+  h += card('Money leaderboard', `<div class="rows">${list.map((r, i) => `<a class="row${i === 0 ? ' top' : ''}${meCls(r.k)}" href="#/team/${encodeURIComponent(r.k)}"><span class="rk">${i + 1}</span>${tm(r.k, { link: false })}<span class="rv"><span class="v ${cls(r.net)}">${usdS(r.net)}</span><span class="s">won ${usd(r.won)} · paid ${usd(r.paid)}</span></span></a>`).join('')}</div>`, { note: `Net from decided seasons.${live.length ? ` The ${live.map(s => esc(s.season)).join(', ')} buy-in${live.length > 1 ? 's are' : ' is'} still in play and not counted yet.` : ''}` });
+  h += '<div class="gap"></div>';
+  // highlights
+  const T = [];
+  const top = tops(list, r => r.net), bot = tops(list, r => r.net, -1), dry = list.filter(r => r.paid && !r.won).sort((a, b) => b.paid - a.paid), roi = tops(list.filter(r => r.paid), r => r.roi);
+  if (top.items.length) T.push(['💰 Biggest winner', andList(top.items.map(r => nm(r.k))), usdS(top.v) + ' all time']);
+  if (bot.items.length) T.push(['💸 Most money lost', andList(bot.items.map(r => nm(r.k))), usdS(bot.v) + ' all time']);
+  if (roi.items.length) T.push(['📈 Best return', andList(roi.items.map(r => nm(r.k))), `${f0(roi.v * 100)}% on every dollar`]);
+  if (dry.length) T.push(['🕳️ Never cashed', plural(dry.length, 'manager'), `${usd(dry.reduce((n, r) => n + r.paid, 0))} in, nothing back`]);
+  const ru = list.filter(r => r.won && !r.titles); if (ru.length) T.push(['🥈 Got their money back', andList(ru.map(r => nm(r.k))), 'Runner-up refund']);
+  h += card('Highlights', tiles(T)) + '<div class="gap"></div>';
+  // season grid
+  const keys = list.map(r => r.k);
+  h += card('Season by season', table(['', 'Team', ...seasons.map(s => esc(s.season)), 'Net'], keys.map(k => [av(k, 'sm'), `<a href="#/team/${encodeURIComponent(k)}"><b>${nm(k)}</b></a>`, ...seasons.map(s => { const v = R[k].seasons[s.season]; return v === undefined ? '<span class="faint">·</span>' : v === null ? `<span class="dim">${usd(-BUY_IN)}*</span>` : v > 0 ? `<b class="win">${usdS(v)}</b>` : v === 0 ? '<span>$0</span>' : `<span class="loss">${usd(v)}</span>`; }), `<b class="${cls(R[k].net)}">${usdS(R[k].net)}</b>`]), { left: 2, rowCls: i => meCls(keys[i]) }), { note: `Each season's result after the ${usd(BUY_IN)} buy-in: champion ${usdS(done.length ? done[0].teams.length * BUY_IN - 2 * BUY_IN : 400)}, runner-up $0, everyone else ${usd(-BUY_IN)}. * = paid in, season still being played.` });
+  h += '<div class="gap"></div>' + card('Payout history', `<div class="rows">${done.slice().reverse().map(s => `<div class="row" style="grid-template-columns:58px minmax(0,1fr) auto"><span class="yr">${esc(s.season)}</span><span style="min-width:0;display:grid;gap:6px">${tm(s.champ, { sub: false, size: 'sm' })}${s.runner ? tm(s.runner, { sub: false, size: 'sm' }) : ''}</span><span class="rv"><span class="v gold">${usd(s.teams.length * BUY_IN - BUY_IN)}</span><span class="s">${s.runner ? usd(BUY_IN) + ' back' : ''}</span></span></div>`).join('') || '<div class="empty">No pots decided yet.</div>'}</div>`, { note: `Pot = ${M.TEAMS.length} teams × ${usd(BUY_IN)}.` });
+  return h;
+};
+
 /* ---------- HISTORY ---------- */
 P.history = function () {
   const { S, SS, cur, finished, done, CAR, TEAMS } = M;
@@ -977,7 +1040,7 @@ P.history = function () {
   }).join('')}</div><div class="gap"></div>`;
   // all-time
   const AT = Object.values(CAR).filter(c => c.w + c.l).sort((a, b) => b.wp - a.wp);
-  h += card('All-time standings', table(['#', 'Team', 'W-L', 'Win %', 'PF', 'PF/Wk', 'Playoffs', 'Titles'], AT.map((c, i) => [i + 1, tm(c.t.key, { sub: false, size: 'sm' }), `${c.w}-${c.l}`, f(c.wp * 100) + '%', f(c.pf), f(c.ppg), c.apps || '–', c.titles.length ? `<b class="gold">${c.titles.length}</b>` : '–']), { rowCls: i => meCls(AT[i].t.key) }), { note: `Every season${M.inSeason ? ', this one through the latest finished week' : ''}. Records include median games.` });
+  h += card('All-time standings', table(['#', 'Team', 'W-L', 'Win %', 'PF', 'PF/Wk', 'Playoffs', 'Titles', 'Net $'], AT.map((c, i) => { const mr = money().R[c.t.key]; return [i + 1, tm(c.t.key, { sub: false, size: 'sm' }), `${c.w}-${c.l}`, f(c.wp * 100) + '%', f(c.pf), f(c.ppg), c.apps || '–', c.titles.length ? `<b class="gold">${c.titles.length}</b>` : '–', mr ? `<a href="#/money" class="${cls(mr.net)}" style="font-weight:700">${usdS(mr.net)}</a>` : '–']; }), { rowCls: i => meCls(AT[i].t.key) }), { note: `Every season${M.inSeason ? ', this one through the latest finished week' : ''}. Records include median games.` });
   // dynasty grid: finish per manager per season
   const yrs = S.map(s => s.season);
   const cellF = (k, s) => { const x = CAR[k].seasons.find(z => z.y === s.season); if (!x) return '<span class="faint">·</span>'; if (x.live) return `<span class="dim">${ord(x.rank)}*</span>`; if (x.champ) return '<b class="gold">🏆</b>'; const v = x.place || x.rank; return x.po ? `<b>${ord(v)}</b>` : `<span class="dim">${ord(v)}</span>`; };
@@ -993,7 +1056,7 @@ P.history = function () {
 const PAGES = [
   ['home', 'Home', '🏠'], ['standings', 'Standings', '📊'], ['teams', 'Managers', '👤'], ['h2h', 'Head to Head', '⚔️'],
   ['records', 'Game Records', '🏅'], ['power', 'Power & Luck', '⚡'], ['weekly', 'Weekly', '📅'], ['trades', 'Trades', '🔁'],
-  ['draft', 'Draft Board', '📋'], ['awards', 'Awards', '🏆'], ['history', 'History', '📜']
+  ['draft', 'Draft Board', '📋'], ['awards', 'Awards', '🏆'], ['money', 'Profits', '💰'], ['history', 'History', '📜']
 ];
 const pageOf = r => r === 'team' ? 'teams' : r;
 function renderNav(active) {
