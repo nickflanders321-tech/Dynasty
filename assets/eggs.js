@@ -9,6 +9,9 @@
 //   "&ldquo;I'll be fine at QB&rdquo;<span class=\"attrib\">— Every manager in August</span>",
 //
 window.LEAGUE_EGGS = [
+  "Ben is gay",
+  "Brad's got a small dick",
+  "JaKris is wack",
 ];
 
 // How often an easter egg is picked instead of a real stat (0.10 = 10%).
